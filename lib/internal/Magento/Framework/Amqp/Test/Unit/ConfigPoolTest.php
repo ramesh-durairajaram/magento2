@@ -5,14 +5,22 @@
  */
 namespace Magento\Framework\Amqp\Test\Unit;
 
-class ConfigPoolTest extends \PHPUnit\Framework\TestCase
+use Magento\Framework\Amqp\Config as AmqpConfig;
+use Magento\Framework\Amqp\ConfigFactory as AmqpConfigFactory;
+use Magento\Framework\Amqp\ConfigPool as AmqpConfigPool;
+use PHPUnit\Framework\TestCase;
+
+class ConfigPoolTest extends TestCase
 {
-    public function testGetConnection()
+    /**
+     * @return void
+     */
+    public function testGetConnection(): void
     {
-        $factory = $this->createMock(\Magento\Framework\Amqp\ConfigFactory::class);
-        $config = $this->createMock(\Magento\Framework\Amqp\Config::class);
+        $factory = $this->createMock(AmqpConfigFactory::class);
+        $config = $this->createMock(AmqpConfig::class);
         $factory->expects($this->once())->method('create')->with(['connectionName' => 'amqp'])->willReturn($config);
-        $model = new \Magento\Framework\Amqp\ConfigPool($factory);
+        $model = new AmqpConfigPool($factory);
         $this->assertEquals($config, $model->get('amqp'));
         //test that object is cached
         $this->assertEquals($config, $model->get('amqp'));

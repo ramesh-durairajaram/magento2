@@ -7,12 +7,16 @@ namespace Magento\Framework\Amqp\Test\Unit\Topology;
 
 use Magento\Framework\Amqp\Topology\BindingInstaller;
 use Magento\Framework\Amqp\Topology\BindingInstallerInterface;
-use PhpAmqpLib\Channel\AMQPChannel;
 use Magento\Framework\MessageQueue\Topology\Config\ExchangeConfigItem\BindingInterface;
+use PHPUnit\Framework\TestCase;
+use PhpAmqpLib\Channel\AMQPChannel;
 
-class BindingInstallerTest extends \PHPUnit\Framework\TestCase
+class BindingInstallerTest extends TestCase
 {
-    public function testInstall()
+    /**
+     * @return void
+     */
+    public function testInstall(): void
     {
         $installerOne = $this->createMock(BindingInstallerInterface::class);
         $installerTwo = $this->createMock(BindingInstallerInterface::class);
@@ -31,11 +35,13 @@ class BindingInstallerTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage Installer type [test] is not configured
+     * @return void
      */
-    public function testInstallInvalidType()
+    public function testInstallInvalidType(): void
     {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Installer type [test] is not configured');
+
         $installerOne = $this->createMock(BindingInstallerInterface::class);
         $installerTwo = $this->createMock(BindingInstallerInterface::class);
         $model = new BindingInstaller(

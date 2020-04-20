@@ -6,33 +6,46 @@
 
 namespace Magento\Framework\Amqp\Test\Unit\Bulk;
 
+use Magento\Framework\Amqp\Bulk\Exchange as BulkExchange;
+use Magento\Framework\Amqp\Config as AmqpConfig;
+use Magento\Framework\Amqp\Exchange;
+use Magento\Framework\Communication\ConfigInterface as CommunicationConfig;
+use Magento\Framework\MessageQueue\EnvelopeInterface as Envelope;
+use Magento\Framework\MessageQueue\Publisher\ConfigInterface as PublisherConfig;
+use Magento\Framework\MessageQueue\Publisher\Config\PublisherConfigItemInterface as Publisher;
+use Magento\Framework\MessageQueue\Publisher\Config\PublisherConnectionInterface as PublisherConnection;
+use Magento\Framework\TestFramework\Unit\Helper\ObjectManager as ObjectManagerHelper;
+use PhpAmqpLib\Message\AMQPMessage;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
+
 /**
  * Unit test for Exchange model.
  */
-class ExchangeTest extends \PHPUnit\Framework\TestCase
+class ExchangeTest extends TestCase
 {
     /**
-     * @var \Magento\Framework\Amqp\Config|\PHPUnit_Framework_MockObject_MockObject
+     * @var AmqpConfig|MockObject
      */
     private $amqpConfig;
 
     /**
-     * @var \Magento\Framework\Communication\ConfigInterface|\PHPUnit_Framework_MockObject_MockObject
+     * @var CommunicationConfig|MockObject
      */
     private $communicationConfig;
 
     /**
-     * @var \Magento\Framework\MessageQueue\Publisher\ConfigInterface|\PHPUnit_Framework_MockObject_MockObject
+     * @var PublisherConfig|MockObject
      */
     private $publisherConfig;
 
     /**
-     * @var \Magento\Framework\Amqp\Exchange|\PHPUnit_Framework_MockObject_MockObject
+     * @var Exchange|MockObject
      */
     private $exchange;
 
     /**
-     * @var \Magento\Framework\Amqp\Bulk\Exchange
+     * @var BulkExchange
      */
     private $bulkExchange;
 
@@ -41,21 +54,20 @@ class ExchangeTest extends \PHPUnit\Framework\TestCase
      *
      * @return void
      */
-    protected function setUp()
+    protected function setUp(): void
     {
-        $this->amqpConfig = $this->getMockBuilder(\Magento\Framework\Amqp\Config::class)
+        $this->amqpConfig = $this->getMockBuilder(AmqpConfig::class)
             ->disableOriginalConstructor()->getMock();
-        $this->communicationConfig = $this->getMockBuilder(\Magento\Framework\Communication\ConfigInterface::class)
+        $this->communicationConfig = $this->getMockBuilder(CommunicationConfig::class)
             ->disableOriginalConstructor()->getMock();
-        $this->publisherConfig = $this
-            ->getMockBuilder(\Magento\Framework\MessageQueue\Publisher\ConfigInterface::class)
+        $this->publisherConfig = $this->getMockBuilder(PublisherConfig::class)
             ->disableOriginalConstructor()->getMock();
-        $this->exchange = $this->getMockBuilder(\Magento\Framework\Amqp\Exchange::class)
+        $this->exchange = $this->getMockBuilder(Exchange::class)
             ->disableOriginalConstructor()->getMock();
 
-        $objectManager = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
+        $objectManager = new ObjectManagerHelper($this);
         $this->bulkExchange = $objectManager->getObject(
-            \Magento\Framework\Amqp\Bulk\Exchange::class,
+            BulkExchange::class,
             [
                 'amqpConfig' => $this->amqpConfig,
                 'communicationConfig' => $this->communicationConfig,
@@ -70,38 +82,33 @@ class ExchangeTest extends \PHPUnit\Framework\TestCase
      *
      * @return void
      */
-    public function testEnqueue()
+    public function testEnqueue(): void
     {
         $topicName = 'topic.name';
         $exchangeName = 'exchangeName';
         $envelopeBody = 'envelopeBody';
         $envelopeProperties = ['property_key_1' => 'property_value_1'];
-        $topicData = [
-            \Magento\Framework\Communication\ConfigInterface::TOPIC_IS_SYNCHRONOUS => false
-        ];
+        $topicData = [CommunicationConfig::TOPIC_IS_SYNCHRONOUS => false];
         $this->communicationConfig->expects($this->once())
             ->method('getTopic')->with($topicName)->willReturn($topicData);
         $channel = $this->getMockBuilder(\AMQPChannel::class)
-            ->setMethods(['batch_basic_publish', 'publish_batch'])
-            ->disableOriginalConstructor()->getMock();
+                        ->setMethods(['batch_basic_publish', 'publish_batch'])
+                        ->disableOriginalConstructor()->getMock();
         $this->amqpConfig->expects($this->once())->method('getChannel')->willReturn($channel);
-        $publisher = $this
-            ->getMockBuilder(\Magento\Framework\MessageQueue\Publisher\Config\PublisherConfigItemInterface::class)
-            ->disableOriginalConstructor()->getMock();
+        $publisher = $this->getMockBuilder(Publisher::class)
+                          ->disableOriginalConstructor()->getMock();
         $this->publisherConfig->expects($this->once())
             ->method('getPublisher')->with($topicName)->willReturn($publisher);
-        $connection = $this
-            ->getMockBuilder(\Magento\Framework\MessageQueue\Publisher\Config\PublisherConnectionInterface::class)
-            ->disableOriginalConstructor()->getMock();
+        $connection = $this->getMockBuilder(PublisherConnection::class)
+                           ->disableOriginalConstructor()->getMock();
         $publisher->expects($this->once())->method('getConnection')->with()->willReturn($connection);
         $connection->expects($this->once())->method('getExchange')->with()->willReturn($exchangeName);
-        $envelope = $this
-            ->getMockBuilder(\Magento\Framework\MessageQueue\EnvelopeInterface::class)
-            ->disableOriginalConstructor()->getMock();
+        $envelope = $this->getMockBuilder(Envelope::class)
+                         ->disableOriginalConstructor()->getMock();
         $envelope->expects($this->once())->method('getBody')->willReturn($envelopeBody);
         $envelope->expects($this->once())->method('getProperties')->willReturn($envelopeProperties);
         $channel->expects($this->once())->method('batch_basic_publish')
-            ->with($this->isInstanceOf(\PhpAmqpLib\Message\AMQPMessage::class), $exchangeName, $topicName);
+                ->with($this->isInstanceOf(AMQPMessage::class), $exchangeName, $topicName);
         $channel->expects($this->once())->method('publish_batch');
         $this->assertNull($this->bulkExchange->enqueue($topicName, [$envelope]));
     }
@@ -111,18 +118,14 @@ class ExchangeTest extends \PHPUnit\Framework\TestCase
      *
      * @return void
      */
-    public function testEnqueueWithSynchronousTopic()
+    public function testEnqueueWithSynchronousTopic(): void
     {
         $topicName = 'topic.name';
         $response = 'responseBody';
-        $topicData = [
-            \Magento\Framework\Communication\ConfigInterface::TOPIC_IS_SYNCHRONOUS => true
-        ];
+        $topicData = [CommunicationConfig::TOPIC_IS_SYNCHRONOUS => true];
         $this->communicationConfig->expects($this->once())
             ->method('getTopic')->with($topicName)->willReturn($topicData);
-        $envelope = $this
-            ->getMockBuilder(\Magento\Framework\MessageQueue\EnvelopeInterface::class)
-            ->disableOriginalConstructor()->getMock();
+        $envelope = $this->getMockBuilder(Envelope::class)->disableOriginalConstructor()->getMock();
         $this->exchange->expects($this->once())->method('enqueue')->with($topicName, $envelope)->willReturn($response);
         $this->assertEquals([$response], $this->bulkExchange->enqueue($topicName, [$envelope]));
     }

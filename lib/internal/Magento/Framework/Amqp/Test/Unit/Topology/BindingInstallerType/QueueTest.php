@@ -6,22 +6,29 @@
 namespace Magento\Framework\Amqp\Test\Unit\Topology\BindingInstallerType;
 
 use Magento\Framework\Amqp\Topology\BindingInstallerType\Queue;
-use PhpAmqpLib\Channel\AMQPChannel;
 use Magento\Framework\MessageQueue\Topology\Config\ExchangeConfigItem\BindingInterface;
+use PHPUnit\Framework\TestCase;
+use PhpAmqpLib\Channel\AMQPChannel;
 
-class QueueTest extends \PHPUnit\Framework\TestCase
+class QueueTest extends TestCase
 {
     /**
      * @var Queue
      */
     private $model;
 
-    protected function setUp()
+    /**
+     * @inheritdoc
+     */
+    protected function setUp(): void
     {
         $this->model = new Queue();
     }
 
-    public function testInstall()
+    /**
+     * @return void
+     */
+    public function testInstall(): void
     {
         $channel = $this->createMock(AMQPChannel::class);
         $binding = $this->createMock(BindingInterface::class);

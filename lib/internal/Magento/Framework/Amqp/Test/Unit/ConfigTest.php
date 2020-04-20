@@ -5,14 +5,18 @@
  */
 namespace Magento\Framework\Amqp\Test\Unit;
 
+use LogicException;
 use Magento\Framework\Amqp\Config;
 use Magento\Framework\App\DeploymentConfig;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use PHPUnit\Framework\Exception;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
-class ConfigTest extends \PHPUnit\Framework\TestCase
+class ConfigTest extends TestCase
 {
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
+     * @var DeploymentConfig|MockObject
      */
     private $deploymentConfigMock;
 
@@ -26,15 +30,18 @@ class ConfigTest extends \PHPUnit\Framework\TestCase
      */
     private $amqpConfig;
 
-    protected function setUp()
+    /**
+     * @inheritdoc
+     */
+    protected function setUp(): void
     {
         $this->objectManager = new ObjectManager($this);
-        $this->deploymentConfigMock = $this->getMockBuilder(\Magento\Framework\App\DeploymentConfig::class)
+        $this->deploymentConfigMock = $this->getMockBuilder(DeploymentConfig::class)
             ->disableOriginalConstructor()
             ->setMethods(['getConfigData'])
             ->getMock();
         $this->amqpConfig = $this->objectManager->getObject(
-            \Magento\Framework\Amqp\Config::class,
+            Config::class,
             [
                 'config' => $this->deploymentConfigMock,
             ]
@@ -42,11 +49,15 @@ class ConfigTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @expectedException \LogicException
-     * @expectedExceptionMessage Unknown connection name amqp
+     * @return void
+     * @throws Exception
+     * @throws LogicException
      */
-    public function testGetNullConfig()
+    public function testGetNullConfig(): void
     {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('Unknown connection name amqp');
+
         $this->deploymentConfigMock->expects($this->once())
             ->method('getConfigData')
             ->with(Config::QUEUE_CONFIG)
@@ -56,11 +67,15 @@ class ConfigTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @expectedException \LogicException
-     * @expectedExceptionMessage Unknown connection name amqp
+     * @return void
+     * @throws Exception
+     * @throws LogicException
      */
-    public function testGetEmptyConfig()
+    public function testGetEmptyConfig(): void
     {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('Unknown connection name amqp');
+
         $this->deploymentConfigMock->expects($this->once())
             ->method('getConfigData')
             ->with(Config::QUEUE_CONFIG)
@@ -69,7 +84,10 @@ class ConfigTest extends \PHPUnit\Framework\TestCase
         $this->amqpConfig->getValue(Config::HOST);
     }
 
-    public function testGetStandardConfig()
+    /**
+     * @return void
+     */
+    public function testGetStandardConfig(): void
     {
         $expectedHost = 'example.com';
         $expectedPort = 5672;
@@ -107,9 +125,12 @@ class ConfigTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('randomValue', $this->amqpConfig->getValue('randomKey'));
     }
 
-    public function testGetCustomConfig()
+    /**
+     * @return void
+     */
+    public function testGetCustomConfig(): void
     {
-        $amqpConfig = new \Magento\Framework\Amqp\Config($this->deploymentConfigMock, 'connection-01');
+        $amqpConfig = new Config($this->deploymentConfigMock, 'connection-01');
         $expectedHost = 'example.com';
         $expectedPort = 5672;
         $expectedUsername = 'guest_username';

@@ -8,12 +8,16 @@ namespace Magento\Framework\Amqp\Test\Unit\Topology;
 use Magento\Framework\Amqp\Topology\ExchangeInstaller;
 use Magento\Framework\Amqp\Topology\BindingInstallerInterface;
 use Magento\Framework\MessageQueue\Topology\Config\ExchangeConfigItemInterface;
-use PhpAmqpLib\Channel\AMQPChannel;
 use Magento\Framework\MessageQueue\Topology\Config\ExchangeConfigItem\BindingInterface;
+use PHPUnit\Framework\TestCase;
+use PhpAmqpLib\Channel\AMQPChannel;
 
-class ExchangeInstallerTest extends \PHPUnit\Framework\TestCase
+class ExchangeInstallerTest extends TestCase
 {
-    public function testInstall()
+    /**
+     * @return void
+     */
+    public function testInstall(): void
     {
         $bindingInstaller = $this->createMock(BindingInstallerInterface::class);
         $model = new ExchangeInstaller($bindingInstaller);

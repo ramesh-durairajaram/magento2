@@ -7,11 +7,15 @@ namespace Magento\Framework\Amqp\Test\Unit\Topology;
 
 use Magento\Framework\Amqp\Topology\QueueInstaller;
 use Magento\Framework\MessageQueue\Topology\Config\QueueConfigItemInterface;
+use PHPUnit\Framework\TestCase;
 use PhpAmqpLib\Channel\AMQPChannel;
 
-class QueueInstallerTest extends \PHPUnit\Framework\TestCase
+class QueueInstallerTest extends TestCase
 {
-    public function testInstall()
+    /**
+     * @return void
+     */
+    public function testInstall(): void
     {
         $bindingInstaller = $this->createMock(QueueConfigItemInterface::class);
         $model = new QueueInstaller($bindingInstaller);

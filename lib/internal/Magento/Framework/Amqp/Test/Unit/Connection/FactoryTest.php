@@ -9,14 +9,18 @@ namespace Magento\Framework\Amqp\Test\Unit\Connection;
 
 use Magento\Framework\Amqp\Connection\Factory;
 use Magento\Framework\Amqp\Connection\FactoryOptions;
-use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use Magento\Framework\App\ObjectManager;
+use Magento\Framework\ObjectManagerInterface;
+use Magento\Framework\TestFramework\Unit\Helper\ObjectManager as ObjectManagerHelper;
 use PhpAmqpLib\Connection\AMQPSSLConnection;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Tests \Magento\Framework\Amqp\Connection\Factory.
  */
-class FactoryTest extends \PHPUnit\Framework\TestCase
+class FactoryTest extends TestCase
 {
     /**
      * @var Factory
@@ -24,28 +28,28 @@ class FactoryTest extends \PHPUnit\Framework\TestCase
     private $object;
 
     /**
-     * @var ObjectManager
+     * @var ObjectManagerHelper
      */
     private $objectManager;
 
     /**
-     * @var \Magento\Framework\App\ObjectManager
+     * @var ObjectManager
      */
     private $objectManagerInterface;
 
     /**
-     * @var FactoryOptions|\PHPUnit_Framework_MockObject_MockObject
+     * @var FactoryOptions|MockObject
      */
     private $optionsMock;
 
     /**
      * @inheritdoc
      */
-    protected function setUp()
+    protected function setUp(): void
     {
-        $this->objectManager = new ObjectManager($this);
+        $this->objectManager = new ObjectManagerHelper($this);
 
-        $className = \Magento\Framework\ObjectManagerInterface::class;
+        $className = ObjectManagerInterface::class;
         $this->objectManagerInterface = $this->createMock($className);
 
         $this->optionsMock = $this->getMockBuilder(FactoryOptions::class)
@@ -72,7 +76,7 @@ class FactoryTest extends \PHPUnit\Framework\TestCase
      * @return void
      * @dataProvider connectionDataProvider
      */
-    public function testSSLConnection($sslEnabled, $connectionClass)
+    public function testSSLConnection($sslEnabled, $connectionClass): void
     {
         $this->optionsMock->expects($this->exactly(2))
             ->method('isSslEnabled')
@@ -101,7 +105,7 @@ class FactoryTest extends \PHPUnit\Framework\TestCase
             ->with($connectionClass)
             ->willReturn($this->createMock($connectionClass));
 
-        \Magento\Framework\App\ObjectManager::setInstance($this->objectManagerInterface);
+        ObjectManager::setInstance($this->objectManagerInterface);
 
         $connection = $this->object->create($this->optionsMock);
 
@@ -111,7 +115,7 @@ class FactoryTest extends \PHPUnit\Framework\TestCase
     /**
      * @return array
      */
-    public function connectionDataProvider()
+    public function connectionDataProvider(): array
     {
         return [
             [
@@ -125,13 +129,11 @@ class FactoryTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    protected function tearDown()
+    /**
+     * @inheritdoc
+     */
+    protected function tearDown(): void
     {
-        $this->objectManager->setBackwardCompatibleProperty(
-            null,
-            '_instance',
-            null,
-            \Magento\Framework\App\ObjectManager::class
-        );
+        $this->objectManager->setBackwardCompatibleProperty(null, '_instance', null, ObjectManager::class);
     }
 }

@@ -9,15 +9,17 @@ use Magento\Framework\Amqp\TopologyInstaller;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Framework\MessageQueue\Topology\ConfigInterface;
 use PhpAmqpLib\Exception\AMQPLogicException;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 /**
- * Unit tests for @see \Magento\Framework\Amqp\TopologyInstaller
+ * Unit tests for @see TopologyInstaller
  */
-class TopologyInstallerTest extends \PHPUnit\Framework\TestCase
+class TopologyInstallerTest extends TestCase
 {
     /**
-     * @var \Magento\Framework\Amqp\TopologyInstaller
+     * @var TopologyInstaller
      */
     private $topologyInstaller;
 
@@ -27,19 +29,20 @@ class TopologyInstallerTest extends \PHPUnit\Framework\TestCase
     private $objectManager;
 
     /**
-     * @var ConfigInterface | \PHPUnit_Framework_MockObject_MockObject
+     * @var ConfigInterface|MockObject
      */
     private $topologyConfigMock;
 
     /**
-     * @var LoggerInterface | \PHPUnit_Framework_MockObject_MockObject
+     * @var LoggerInterface|MockObject
      */
     private $loggerMock;
 
     /**
      * Initialize topology installer.
+     * @inheritdoc
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->objectManager = new ObjectManager($this);
         $this->topologyConfigMock = $this->createMock(ConfigInterface::class);
@@ -53,8 +56,9 @@ class TopologyInstallerTest extends \PHPUnit\Framework\TestCase
 
     /**
      * Make sure that topology creation errors in log contain actual error message.
+     * @return void
      */
-    public function testInstallException()
+    public function testInstallException(): void
     {
         $exceptionMessage = "Exception message";
 
